@@ -262,3 +262,40 @@ Identify the original URI privately from the authorized provider source
 and record only the host prefix, project/branch and database name.
 
 Official policy: https://docs.netlify.com/build/environment-variables/secrets-controller/
+
+
+## Final read-only endpoint correlation investigation
+
+On 14 November 2026, a read-only health request to live Netlify Production
+coincided with the activation of a Neon snapshot-restored staging branch.
+Other candidate endpoints were initially idle. The method was validated
+with a separate Deploy Preview: its known Neon preview endpoint activated
+at the matching time after a preview health request.
+
+The snapshot-restored branch differs materially from the populated staging
+branch: it has fewer completed migrations and lacks the
+OrderItem.itemName schema column required by the current application.
+This creates a HIGH-PRIORITY potential live-database mismatch.
+The exact Netlify production connection string remains masked and cannot
+be directly confirmed. Activity correlation is strong evidence, not
+cryptographic proof or authorization to change endpoints.
+
+To prevent false-green readiness in future releases, the release candidate
+now checks required schema contracts. Missing structures produce HTTP 503
+(database=schema_incompatible), redacted structured logging, and an
+X-Request-ID. TypeScript, ESLint, 38 of 38 unit tests, and a synthetic
+cloud-compatible build passed for this addition.
+
+A final browser E2E rerun for the additional health guard could not be
+started through the connected desktop tool in this attempt. The previous
+36-test candidate passed the synthetic browser suite; do not claim that
+the new health guard has completed browser validation.
+
+Never point production blindly at the populated staging branch, migrate
+the suspected snapshot-restored database, or apply a rollback until the
+actual production endpoint and intended business data are independently
+verified and both relevant states are safely backed up.
+
+Detailed endpoint correlation evidence is intentionally stored in a
+PRIVATE user-facing investigation report, rather than adding new
+operational identifiers to this public repository.

@@ -16,3 +16,10 @@ test("health failure event only contains allowlisted, structured fields", () => 
   assert.equal(event.severity, "error");
   assert.ok(!JSON.stringify(event).includes("DATABASE_URL"));
 });
+
+test("schema incompatibility logs an allowlisted event without internal details", () => {
+  const item = JSON.parse(healthFailureEvent("req-7", 83, new Date("2026-11-14T00:00:00Z"), "database_schema_incompatible"));
+  assert.equal(item.event, "database_schema_incompatible");
+  assert.equal(item.durationMs, 83);
+  assert.deepEqual(Object.keys(item).sort(), ["at", "durationMs", "event", "requestId", "service", "severity"].sort());
+});

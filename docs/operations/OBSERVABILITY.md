@@ -34,3 +34,22 @@ Suggested alert thresholds after observing a clean baseline:
    do not assume code rollback reverses database schema.
 6. Escalate production recovery to the runbook and verified backups.
 7. Postmortem: time to detect, time to mitigate, root cause, corrective tests.
+
+
+## Critical schema readiness guard (release candidate, not yet deployed)
+
+The new release-candidate health route checks for both the OrderItem.itemName
+column (checkout-time receipt name snapshot) and the AuthLoginThrottle.keyHash
+column (required by authentication). If either is absent, readiness returns
+HTTP 503 with database=schema_incompatible, a non-sensitive structured
+database_schema_incompatible event and the X-Request-ID header.
+
+This protects against a false-positive SELECT 1 health response when
+credentials accidentally target a restored branch with old migrations.
+It does not verify that the records belong to the intended business or
+that an offsite backup exists. These require separate validation.
+
+The production website is still on main and uses its older health check.
+Do not deploy the readiness guard until the exact production database is
+identified and protected, the additive authentication migration is
+approved and applied safely, and the updated preview/E2E checks pass.
