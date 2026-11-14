@@ -93,8 +93,14 @@ by applying their patches, not through any merge into main.
   none and base-uri self; X-Frame-Options DENY; nosniff; Referrer-Policy and
   Permissions-Policy. Anonymous dashboard redirected to login: PASS.
 - Production dependency audit: 0 vulnerabilities.
-- Full dependency audit including development tools: 8 moderate advisories,
-  0 high, 0 critical. Evaluate separately before future major upgrades.
+- **Final full dependency audit after scoped transitive override: 0 total
+  advisories (0 critical/high/moderate/low).**
+- Production-only dependency audit: 0 advisories. Earlier 8 moderate
+  development dependency advisories were traced to minimatch 10.2.6
+  under @typescript-eslint/typescript-estree 8.72.2. A scoped override
+  to minimatch 11.0.1 was introduced in the release candidate only.
+  Since this crosses a transitive major boundary, a future upstream
+  fix should replace the override after QA.
 
 ## Production database mapping: UNRESOLVED / CRITICAL
 
@@ -161,6 +167,56 @@ The integrated checkout is detached from main and has not been pushed.
 The three source branches contain no .env files, SQL dumps or customer records.
 The disposable PostgreSQL databases were created on the user's localhost.
 No Netlify preview or production deployment was triggered by the work.
+
+## Final consolidated release-candidate validation (14 November 2026)
+
+Consolidated Git branch: security/phase2-release-candidate, forked from
+main SHA 20e91c3f465cea94c14752ac1f2e5d1b1ecf5359.
+
+All original authentication, HTTP security and operations/documentation
+commits were replayed into one standalone release-candidate worktree
+without modifying main or opening a pull request.
+
+- npm ci using Node 22 and the lockfile: PASS.
+- npm audit --json after scoped minimatch 11.0.1 override: ZERO advisories,
+  including both production and development dependencies.
+- npm run typecheck: PASS.
+- npm run lint: PASS.
+- npm test: 36/36 PASS.
+- npx prisma validate: PASS.
+- npm run build:netlify with unreachable synthetic DB endpoint: PASS.
+- Fresh isolated PostgreSQL 18 database with all migrations: PASS.
+- Atomic login throttle SQL and safe dry-run cleanup: PASS.
+- Synthetic test database seed and local standalone build: PASS.
+- Browser suite (roles, checkout, receipts, exports, session revocation,
+  header assertions, local backup workflow): PASS.
+- All code-related findings from the initial security review are
+  implemented and tested locally, subject to the release gates below.
+
+**NOT APPROVED FOR PRODUCTION:** The consolidated code includes an
+additive authentication table migration. Deploying the application without
+the corresponding database migration would reject all credential logins.
+Conversely, applying that migration without a verified backup and positive
+production database identity would be unsafe. No cloud database migration,
+Netlify build, PR creation, merge or production deployment was performed.
+
+This branch is a **candidate for review**, not a completed production release.
+The free-plan code-based Netlify per-IP rate limiting capability can provide
+defense in depth, but no Netlify-managed rate-limit rules have been enabled or
+verified; provider rules require an authorized preview/post-processing check.
+Official capability reference:
+https://docs.netlify.com/manage/security/secure-access-to-sites/rate-limiting/
+
+Outstanding external dependencies:
+1. Recover the original live DATABASE_URL *identity* through its authorized
+   provider/secret manager, without exposing the connection string.
+2. Verify an encrypted offsite backup and isolated restore of precisely
+   that live database.
+3. Approve the production-safe migration sequence and account lockout
+   recovery plan.
+4. Explicitly approve preview usage and PR CI, then authorize merge/deploy
+   only after runtime Netlify header/rate-limit verification.
+5. Configure external alerting with an agreed owner and destination.
 
 ## Related runbooks
 

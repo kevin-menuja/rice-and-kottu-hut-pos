@@ -72,3 +72,16 @@ users, orders or payment records are touched.
   volumes before release and have an authorized unlock procedure.
 - HMAC-keyed rows cannot be recognized after signing-secret rotation,
   but are removed by retention cleanup without storing identifiers.
+
+
+## Development tooling advisory remediation (release candidate)
+
+The initial 8 moderate npm advisories were all attributable to the
+transitive minimatch 10.2.6 dependency of
+@typescript-eslint/typescript-estree 8.72.2. The release candidate
+uses a scoped override to minimatch 11.0.1 rather than downgrading
+Next.js or eslint-config-next. npm audit reports zero production and
+development advisories, and isolated typecheck, lint, unit, Netlify-like
+build and synthetic full browser E2E all pass. Because this is a
+transitive major-version override, replace it with a normal upstream
+dependency update once one is released and tested.
