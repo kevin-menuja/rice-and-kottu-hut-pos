@@ -53,3 +53,22 @@ The production website is still on main and uses its older health check.
 Do not deploy the readiness guard until the exact production database is
 identified and protected, the additive authentication migration is
 approved and applied safely, and the updated preview/E2E checks pass.
+
+
+## GitHub Actions readiness monitor (candidate, activates on merge)
+
+The workflow in .github/workflows/production-readiness.yml polls the
+public POS readiness endpoint every six hours at minute 17 UTC. It can
+also be started manually. It requires HTTP 200 and JSON status=ok,
+database=connected. Network timeout, invalid JSON, or HTTP 503 fail it.
+
+On failure, a GitHub issue with the title Production POS health failed is opened if a
+matching open issue does not already exist. The owner must monitor
+GitHub notifications and close the issue after investigating.
+Scheduled workflows run only on the default branch, so this is inactive
+until the release is merged. Standard public GitHub Actions runners are
+free, and this does not provision a paid external monitor.
+
+Six-hour checks cannot provide instant detection, validate order data
+integrity, or prove a recoverable production backup. Add independent
+rapid monitoring and an owner escalation channel for business-critical POS.
