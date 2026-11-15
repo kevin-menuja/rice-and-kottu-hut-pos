@@ -1,0 +1,57 @@
+name: Production POS readiness monitor
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: production-readiness-monitor
+  cancel-in-progress: false
+
+jobs:
+  readiness:
+    name: Verify live POS readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate production health
+        id: health
+        run: node scripts/monitor/verify-health.mjs
+
+      - name: Create or retain one outage issue
+        if: failure() && steps.health.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "[Monitoring] Startek POS production health failed";
+            const existing = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo,
+              state: "open",
+              per_page: 100,
+            });
+            if (existing.some(issue => !issue.pull_request && issue.title === title)) {
+              core.info("A production health issue is already open.");
+              return;
+            }
+            const body = [
+              "Scheduled health verification failed.",
+              "",
+              "Check: https://startek-restaurant-pos.netlify.app/api/health",
+              "Workflow: " + context.serverUrl + "/" + context.repo.owner + "/" + context.repo.repo + "/actions/runs/" + context.runId,
+              "",
+              "Investigate Netlify logs, database readiness and the recovery runbook.",
+              "Do not change database connections or migrate without a verified backup.",
+              "Close the issue manually after incident recovery.",
+            ].join("\n");
+            await github.rest.issues.create({
+              ...context.repo,
+              title,
+              body,
+              labels: ["bug"],
+            });

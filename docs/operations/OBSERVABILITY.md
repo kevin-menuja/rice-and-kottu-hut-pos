@@ -1,0 +1,74 @@
+# Monitoring and incident response
+
+## Current baseline and proposed changes
+
+GET /api/health performs SELECT 1 through Prisma and returns 200 with
+status=ok, database=connected or 503 with database=unavailable. It is a
+readiness check, NOT proof of correct checkout, data completeness or backups.
+The proposed hardening branch adds a request correlation ID and structured
+failure-only logging. No raw database error, connection URI or customer data
+should be included in logs.
+
+## Free/self-hosted monitor proposal (NOT configured)
+
+Use an existing, trusted Uptime Kuma instance if available and authorized.
+Monitor HTTPS GET /api/health every 5 minutes, require HTTP 200, alert after
+2 consecutive failures and send recovery notifications. Monitor TLS certificate
+expiry separately. Confirm monitor data retention and operational ownership.
+Do not configure a provider, URL token or paid alerting integration by default.
+
+Suggested alert thresholds after observing a clean baseline:
+- Availability: 2 consecutive readiness failures (roughly 10 minutes).
+- Backups: no verified off-device backup within 26 hours (once enabled).
+- CI: merged build failure or a new high/critical production advisory.
+- Database: pool exhaustion or repeated connection errors.
+- Runtime: increased failure-only health events; correlate by X-Request-ID.
+
+## Response and rollback
+
+1. Verify public health endpoint and Netlify build status.
+2. Inspect redacted logs by request ID; never paste secrets.
+3. Determine whether failure is database, application, auth or networking.
+4. Pause further deploys; preserve evidence and incident times (UTC).
+5. Restore previous Netlify code deploy only with explicit incident approval;
+   do not assume code rollback reverses database schema.
+6. Escalate production recovery to the runbook and verified backups.
+7. Postmortem: time to detect, time to mitigate, root cause, corrective tests.
+
+
+## Critical schema readiness guard (release candidate, not yet deployed)
+
+The new release-candidate health route checks for both the OrderItem.itemName
+column (checkout-time receipt name snapshot) and the AuthLoginThrottle.keyHash
+column (required by authentication). If either is absent, readiness returns
+HTTP 503 with database=schema_incompatible, a non-sensitive structured
+database_schema_incompatible event and the X-Request-ID header.
+
+This protects against a false-positive SELECT 1 health response when
+credentials accidentally target a restored branch with old migrations.
+It does not verify that the records belong to the intended business or
+that an offsite backup exists. These require separate validation.
+
+The production website is still on main and uses its older health check.
+Do not deploy the readiness guard until the exact production database is
+identified and protected, the additive authentication migration is
+approved and applied safely, and the updated preview/E2E checks pass.
+
+
+## GitHub Actions readiness monitor (candidate, activates on merge)
+
+The workflow in .github/workflows/production-readiness.yml polls the
+public POS readiness endpoint every six hours at minute 17 UTC. It can
+also be started manually. It requires HTTP 200 and JSON status=ok,
+database=connected. Network timeout, invalid JSON, or HTTP 503 fail it.
+
+On failure, a GitHub issue with the title Production POS health failed is opened if a
+matching open issue does not already exist. The owner must monitor
+GitHub notifications and close the issue after investigating.
+Scheduled workflows run only on the default branch, so this is inactive
+until the release is merged. Standard public GitHub Actions runners are
+free, and this does not provision a paid external monitor.
+
+Six-hour checks cannot provide instant detection, validate order data
+integrity, or prove a recoverable production backup. Add independent
+rapid monitoring and an owner escalation channel for business-critical POS.
