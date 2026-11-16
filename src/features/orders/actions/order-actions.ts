@@ -29,6 +29,9 @@ function safeActionError(error: unknown, fallback: string): OrderActionResult {
   if (message === "ORDER_ALREADY_CANCELLED") {
     return { success: false, message: "This order is already cancelled." };
   }
+  if (message === "ORDER_REFUND_ACK_REQUIRED") {
+    return { success: false, message: "Confirm that cancelling an order does not refund a recorded payment." };
+  }
   if (message === "ORDER_NOT_FOUND") {
     return { success: false, message: "The requested order no longer exists." };
   }
@@ -73,9 +76,9 @@ export async function cancelOrderAction(input: unknown): Promise<OrderActionResu
   }
 
   try {
-    const order = await cancelOrder(parsed.data.orderId, parsed.data.reason, session.user.id);
+    const order = await cancelOrder(parsed.data.orderId, parsed.data.reason, session.user.id, parsed.data.acknowledgeNoAutomaticRefund);
     refreshOrders(parsed.data.orderId);
-    return { success: true, message: `${order.orderNumber} cancelled and retained in history.` };
+    return { success: true, message: `${order.orderNumber} cancelled and retained in history.${order.paidTender ? " POS did not refund the recorded payment. Process any refund separately." : ""}` };
   } catch (error) {
     return safeActionError(error, "The order could not be cancelled. Please try again.");
   }

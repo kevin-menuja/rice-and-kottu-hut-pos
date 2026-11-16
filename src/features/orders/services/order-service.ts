@@ -3,6 +3,7 @@ import "server-only";
 import { Prisma, type UserRole } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { notifyActiveUsers } from "@/features/notifications/services/notification-service";
+import { hasPaidTender } from "../utils/cancellation-payment-policy";
 
 import {
   type OrderDetailRecord,
@@ -281,7 +282,12 @@ export async function completePendingOrder(orderId: string, userId: string) {
   });
 }
 
-export async function cancelOrder(orderId: string, reason: string, userId: string) {
+export async function cancelOrder(
+  orderId: string,
+  reason: string,
+  userId: string,
+  acknowledgeNoAutomaticRefund: boolean,
+) {
   return prisma.$transaction(async (tx) => {
     const user = await tx.user.findUnique({
       where: { id: userId },
@@ -293,6 +299,17 @@ export async function cancelOrder(orderId: string, reason: string, userId: strin
       !(ORDER_CANCEL_ROLES as readonly UserRole[]).includes(user.role)
     ) {
       throw new Error("ORDER_CANCEL_DENIED");
+    }
+
+    const current = await tx.order.findUnique({
+      where: { id: orderId },
+      select: { status: true, payments: { select: { paymentStatus: true } } },
+    });
+    if (!current) throw new Error("ORDER_NOT_FOUND");
+    if (current.status === "CANCELLED") throw new Error("ORDER_ALREADY_CANCELLED");
+    const paidTender = hasPaidTender(current.payments);
+    if (paidTender && !acknowledgeNoAutomaticRefund) {
+      throw new Error("ORDER_REFUND_ACK_REQUIRED");
     }
 
     const result = await tx.order.updateMany({
@@ -311,9 +328,9 @@ export async function cancelOrder(orderId: string, reason: string, userId: strin
       select: { orderNumber: true },
     });
     await tx.activityLog.create({
-      data: { userId, action: `CANCELLED_ORDER ${order.orderNumber}: ${reason}` },
+      data: { userId, action: `CANCELLED_ORDER ${order.orderNumber}: ${reason}${paidTender ? " [paid tender NOT refunded by POS]" : ""}` },
     });
     await notifyActiveUsers(tx, { title: "Order cancelled", message: `${order.orderNumber} was cancelled.`, type: "ORDER_CANCELLED", link: `/orders/${orderId}` });
-    return order;
+    return { ...order, paidTender };
   });
 }

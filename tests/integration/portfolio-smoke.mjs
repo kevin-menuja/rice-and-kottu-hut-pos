@@ -172,6 +172,35 @@ try {
   for (const order of orders) assert.ok(csv.includes(order.orderNumber));
   console.log("Receipt and export retain checkout-time item name after a rename; sales report contains all invoices.");
 
+  // Cancellation is not a refund. Require the operator to acknowledge this
+  // explicitly, keep the paid tender unchanged, and retain the audit trail.
+  await open(page, "/orders");
+  await page.getByRole("button", { name: "Cancel " + first.orderNumber }).click();
+  const confirmCancellation = page.getByRole("button", { name: "Confirm cancellation" });
+  await page.getByLabel("Cancellation reason").fill("Test order void with manual refund follow-up");
+  assert.equal(await confirmCancellation.isDisabled(), true, "Cancellation requires refund acknowledgement");
+  await page.getByRole("checkbox", { name: "I understand that cancelling does not refund a recorded payment." }).check();
+  await confirmCancellation.click();
+  await page.getByText(/cancelled and retained in history/).first().waitFor({ timeout: 15000 });
+  const cancelled = await db.query(
+    'SELECT o.status, p."paymentStatus" FROM "Order" o JOIN "Payment" p ON p."orderId"=o.id WHERE o.id=$1',
+    [first.id],
+  );
+  assert.equal(cancelled.rows.length, 1);
+  assert.equal(cancelled.rows[0].status, "CANCELLED");
+  assert.equal(cancelled.rows[0].paymentStatus, "PAID", "Cancellation must not falsely mark a refund");
+  const afterCancellation = await desktop.request.get("/reports/export/sales?format=csv&preset=today");
+  assert.equal(afterCancellation.status(), 200);
+  const salesCsv = await afterCancellation.text();
+  const cancelledLedgerRow = salesCsv.split(/\r?\n/).find((row) => row.includes(first.orderNumber));
+  assert.match(cancelledLedgerRow ?? "", /CANCELLED/, "Cancelled order remains visible in the historical sales export");
+  const completedSales = await db.query('SELECT COALESCE(SUM("grandTotal"),0)::text AS total FROM "Order" WHERE status=$1', ["COMPLETED"]);
+  assert.equal(completedSales.rows[0].total, "2800.00", "Cancellation must exclude voided order from completed sales");
+  const exportTotalRow = salesCsv.split(/\r?\n/).find((row) => row.includes("Completed Net Sales"));
+  assert.match(exportTotalRow ?? "", /2800/, "Reported completed totals must match the remaining paid completed orders");
+  console.log("Paid-order cancellation records the void, requires refund acknowledgement and preserves tender status.");
+
+
   for (const account of accounts) {
     const context = await browser.newContext({ baseURL: base.origin, viewport: { width: 390, height: 844 } });
     const role = await signIn(context, account.username, account.password);

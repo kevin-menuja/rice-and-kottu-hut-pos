@@ -21,6 +21,7 @@ export function OrderActionControls({ canCancel, orderId, orderNumber, showView 
   const router = useRouter();
   const [dialog, setDialog] = useState<"complete" | "cancel" | null>(null);
   const [reason, setReason] = useState("");
+  const [refundAcknowledged, setRefundAcknowledged] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const runComplete = () => startTransition(async () => {
@@ -31,10 +32,10 @@ export function OrderActionControls({ canCancel, orderId, orderNumber, showView 
   });
 
   const runCancel = () => startTransition(async () => {
-    const result = await cancelOrderAction({ orderId, reason });
+    const result = await cancelOrderAction({ orderId, reason, acknowledgeNoAutomaticRefund: refundAcknowledged });
     if (result.success) toast.success(result.message);
     else toast.error(result.message);
-    if (result.success) { setDialog(null); setReason(""); router.refresh(); }
+    if (result.success) { setDialog(null); setReason(""); setRefundAcknowledged(false); router.refresh(); }
   });
 
   const buttonClass = "flex size-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:bg-muted hover:text-secondary focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-45";
@@ -44,7 +45,7 @@ export function OrderActionControls({ canCancel, orderId, orderNumber, showView 
       <div className="flex flex-wrap items-center gap-1.5">
         {showView && <Link aria-label={`View ${orderNumber}`} className={buttonClass} href={`/orders/${orderId}`} title="View order"><Eye aria-hidden="true" className="size-4" /></Link>}
         {status === "PENDING" && <button aria-label={`Complete ${orderNumber}`} className={buttonClass} onClick={() => setDialog("complete")} title="Mark completed" type="button"><CheckCircle2 aria-hidden="true" className="size-4" /></button>}
-        {canCancel && status !== "CANCELLED" && <button aria-label={`Cancel ${orderNumber}`} className={`${buttonClass} hover:border-destructive hover:bg-destructive/5 hover:text-destructive`} onClick={() => setDialog("cancel")} title="Cancel order" type="button"><XCircle aria-hidden="true" className="size-4" /></button>}
+        {canCancel && status !== "CANCELLED" && <button aria-label={`Cancel ${orderNumber}`} className={`${buttonClass} hover:border-destructive hover:bg-destructive/5 hover:text-destructive`} onClick={() => { setRefundAcknowledged(false); setDialog("cancel"); }} title="Cancel order" type="button"><XCircle aria-hidden="true" className="size-4" /></button>}
         <Link aria-label={`Reprint ${orderNumber}`} className={buttonClass} href={`/orders/${orderId}/receipt`} target="_blank" title="Open 80 mm receipt"><Printer aria-hidden="true" className="size-4" /></Link>
       </div>
 
@@ -63,9 +64,14 @@ export function OrderActionControls({ canCancel, orderId, orderNumber, showView 
           <label className="block text-sm font-black text-secondary" htmlFor={`reason-${orderId}`}>Cancellation reason</label>
           <textarea autoFocus className="mt-2 min-h-28 w-full resize-y rounded-xl border border-input bg-background/40 p-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10" id={`reason-${orderId}`} maxLength={300} onChange={(event) => setReason(event.target.value)} placeholder="Explain why this order is being cancelled…" value={reason} />
           <p className="mt-1 text-right text-xs text-muted-foreground">{reason.length}/300</p>
+          <p className="mt-4 text-sm font-semibold leading-6 text-secondary">Cancelling an order does not refund a cash, card, or QR payment. Handle any required refund separately and reconcile the tender.</p>
+          <label className="mt-3 flex items-start gap-2 text-sm text-secondary">
+            <input checked={refundAcknowledged} className="mt-1" onChange={(event) => setRefundAcknowledged(event.target.checked)} type="checkbox" />
+            I understand that cancelling does not refund a recorded payment.
+          </label>
           <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button className="h-11 rounded-xl border border-border px-5 text-sm font-black focus-visible:ring-2 focus-visible:ring-primary" disabled={pending} onClick={() => setDialog(null)} type="button">Keep order</button>
-            <button className="flex h-11 items-center justify-center gap-2 rounded-xl bg-destructive px-5 text-sm font-black text-white focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-60" disabled={pending || reason.trim().length < 3} onClick={runCancel} type="button">{pending && <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />}Confirm cancellation</button>
+            <button className="flex h-11 items-center justify-center gap-2 rounded-xl bg-destructive px-5 text-sm font-black text-white focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-60" disabled={pending || reason.trim().length < 3 || !refundAcknowledged} onClick={runCancel} type="button">{pending && <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />}Confirm cancellation</button>
           </div>
         </div>
       </Modal>
