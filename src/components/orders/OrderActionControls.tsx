@@ -50,7 +50,7 @@ export function OrderActionControls({ canCancel, orderId, orderNumber, showView 
 
       <Modal onClose={() => !pending && setDialog(null)} open={dialog === "complete"} size="sm" title="Complete pending order?">
         <div className="p-5 sm:p-6">
-          <p className="text-sm leading-6 text-muted-foreground">Mark <strong className="text-secondary">{orderNumber}</strong> as completed? This updates its order history.</p>
+          <p className="text-sm leading-6 text-muted-foreground">Mark <strong className="text-secondary">{orderNumber}</strong> as completed? The server will reject unpaid orders; payment must be recorded first.</p>
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button className="h-11 rounded-xl border border-border px-5 text-sm font-black focus-visible:ring-2 focus-visible:ring-primary" disabled={pending} onClick={() => setDialog(null)} type="button">Keep pending</button>
             <button className="flex h-11 items-center justify-center gap-2 rounded-xl bg-success px-5 text-sm font-black text-white focus-visible:ring-2 focus-visible:ring-success disabled:opacity-60" disabled={pending} onClick={runComplete} type="button">{pending && <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />}Mark completed</button>

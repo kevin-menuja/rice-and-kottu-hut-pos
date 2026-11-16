@@ -23,6 +23,9 @@ function safeActionError(error: unknown, fallback: string): OrderActionResult {
   if (message === "ORDER_NOT_PENDING") {
     return { success: false, message: "Only pending orders can be marked completed." };
   }
+  if (message === "ORDER_UNPAID") {
+    return { success: false, message: "The order is not fully paid. Record its payment before marking it completed." };
+  }
   if (message === "ORDER_ALREADY_CANCELLED") {
     return { success: false, message: "This order is already cancelled." };
   }

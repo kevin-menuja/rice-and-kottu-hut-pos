@@ -137,6 +137,26 @@ try {
   }
   console.log("Cash, card and QR reconciled with unique invoices; concurrent cash replays created one order and payment.");
 
+
+  // An unpaid legacy/pending order must never be marked as a completed sale,
+  // even by a SUPER_ADMIN invoking the privileged server action from the UI.
+  const { rows: [administrator] } = await db.query(
+    'SELECT id FROM "User" WHERE username=$1', ["admin"],
+  );
+  const pendingId = randomUUID();
+  const pendingNumber = "AUDIT-PENDING-" + run;
+  await db.query(
+    'INSERT INTO "Order" (id, "orderNumber", "cashierId", "orderType", status, subtotal, discount, tax, "serviceCharge", "grandTotal", "updatedAt") VALUES ($1,$2,$3,$4,$5,$6,0,0,0,$6,NOW())',
+    [pendingId, pendingNumber, administrator.id, "TAKEAWAY", "PENDING", "250.00"],
+  );
+  await open(page, "/orders?status=PENDING");
+  await page.getByRole("button", { name: "Complete " + pendingNumber }).click();
+  await page.getByRole("button", { name: "Mark completed", exact: true }).click();
+  await page.getByText("The order is not fully paid. Record its payment before marking it completed.", { exact: true }).waitFor();
+  const pendingState = await db.query('SELECT status FROM "Order" WHERE id=$1', [pendingId]);
+  assert.equal(pendingState.rows[0].status, "PENDING");
+  console.log("Unpaid pending order rejected by the server action; no false completed sale.");
+
   const first = orders[0];
   await db.query('UPDATE "MenuItem" SET name=$1 WHERE id=$2', [first.itemName + " (renamed)", first.menuItemId]);
   await open(page, "/orders/" + first.id + "/receipt");

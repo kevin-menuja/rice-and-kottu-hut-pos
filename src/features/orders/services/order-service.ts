@@ -240,6 +240,29 @@ export async function completePendingOrder(orderId: string, userId: string) {
       throw new Error("ORDER_ACCESS_DENIED");
     }
 
+    // A pending order is not a completed sale until its paid tender covers the
+    // full order total. A status-only mutation must not create unpaid sales.
+    const pendingOrder = await tx.order.findUnique({
+      where: { id: orderId },
+      select: {
+        status: true,
+        grandTotal: true,
+        payments: {
+          where: { paymentStatus: "PAID" },
+          select: { amount: true },
+        },
+      },
+    });
+    if (!pendingOrder) throw new Error("ORDER_NOT_FOUND");
+    if (pendingOrder.status !== "PENDING") throw new Error("ORDER_NOT_PENDING");
+    const paidTotal = pendingOrder.payments.reduce(
+      (total, payment) => total.plus(payment.amount),
+      new Prisma.Decimal(0),
+    );
+    if (paidTotal.lessThan(pendingOrder.grandTotal)) {
+      throw new Error("ORDER_UNPAID");
+    }
+
     const result = await tx.order.updateMany({
       where: { id: orderId, status: "PENDING" },
       data: { status: "COMPLETED" },
