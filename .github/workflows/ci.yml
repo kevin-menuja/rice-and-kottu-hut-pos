@@ -181,6 +181,8 @@ jobs:
           exit 1
       - name: Browser QA — roles, orders, checkout and backups
         run: npm run test:e2e
+      - name: Restore disposable backup and reconcile users, orders, payments and migrations
+        run: node tests/integration/backup-restore.mjs
       - name: Diagnostics if a browser test fails
         if: failure()
         shell: bash

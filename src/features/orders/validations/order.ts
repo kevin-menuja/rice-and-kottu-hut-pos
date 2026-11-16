@@ -11,6 +11,7 @@ export const cancellationSchema = z.object({
     .trim()
     .min(3, "Enter a cancellation reason of at least 3 characters.")
     .max(300, "Cancellation reason cannot exceed 300 characters."),
+  acknowledgeNoAutomaticRefund: z.boolean().default(false),
 });
 
 export const orderFiltersSchema = z.object({
