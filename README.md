@@ -6,7 +6,7 @@ A full-stack system developed for the day-to-day operations of Rice & Kottu Hut,
 
 [View case study](docs/PORTFOLIO_CASE_STUDY.md) · [Browse demo media](docs/portfolio/README.md) · [Architecture](docs/ARCHITECTURE.md) · [Release evidence](docs/PORTFOLIO_RELEASE.md)
 
-> **Project status: Complete — v1.1.0 released software.** The agreed single-restaurant scope is implemented and the owner reports that the shop installation works. The application is production-oriented, with documented quality, security, backup and operating procedures. Independent live-installation acceptance (including physical printer and recovery verification) is separate from software completion. The [Netlify evaluation site](https://startek-restaurant-pos.netlify.app/login) uses isolated synthetic data and requires authentication; it is not the shop database. No public administrator credentials are provided.
+> **Project status: Complete — v1.1.0 released software.** The agreed single-restaurant scope is implemented and the owner reports that the shop installation works. The application is production-oriented, with documented quality, security, backup and operating procedures. Independent live-installation acceptance (including physical printer and recovery verification) is separate from software completion. The [Netlify evaluation site](https://rice-and-kottu-hut-pos.netlify.app/login) uses isolated synthetic data and requires authentication; it is not the shop database. No public administrator credentials are provided.
 
 ## Product preview
 
@@ -121,7 +121,7 @@ The browser suite (`npm run test:e2e`) requires a **fresh isolated** PostgreSQL 
 
 [GitHub Actions workflow](.github/workflows/ci.yml) defines quality, cloud-build and disposable-database browser checks. The released application baseline at e5e8dc65 passed [hosted CI](https://github.com/kevin-menuja/rice-and-kottu-hut-pos/actions/runs/45502247679). Historical billing restrictions described in the release evidence are not the current CI status. The separate [production-readiness review (PR #7)](https://github.com/kevin-menuja/rice-and-kottu-hut-pos/pull/7) contains additional audited changes that are not part of the released baseline.
 
-A Netlify deployment must be built from a clean checkout with credentials supplied as platform environment variables. The cloud build rejects local dotenv files. **For manual deployments, publish `.netlify/static` with the adapter functions, never `.next` alone.** Use [the verified deployment procedure](docs/DEPLOYMENT.md) and run `node scripts/smoke-netlify.mjs https://startek-restaurant-pos.netlify.app` to check the live stylesheet, restaurant logo, database health, and route protection. Apply migrations deliberately and inspect generated functions before uploading.
+A Netlify deployment must be built from a clean checkout with credentials supplied as platform environment variables. The cloud build rejects local dotenv files. **For manual deployments, publish `.netlify/static` with the adapter functions, never `.next` alone.** Use [the verified deployment procedure](docs/DEPLOYMENT.md) and run `node scripts/smoke-netlify.mjs https://rice-and-kottu-hut-pos.netlify.app` to check the live stylesheet, restaurant logo, database health, and route protection. Apply migrations deliberately and inspect generated functions before uploading.
 
 ## Operating boundaries
 
