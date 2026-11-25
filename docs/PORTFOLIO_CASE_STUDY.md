@@ -1,6 +1,6 @@
-# Rice & Kottu Hut Restaurant POS
+# Rice & Kottu Hut POS
 
-Startek (PVT) LTD developed this application to bring order entry, menu updates, expense tracking, and transaction reporting into a single restaurant workspace. The operator can select dishes and sizes, record the tender, and open an 80 mm receipt from the saved order. Management can reconcile orders, payments and expenses and export business records for further review.
+Kevin Menuja independently developed this application for his own shop, Rice & Kottu Hut, to bring order entry, menu updates, expense tracking, and transaction reporting into a single restaurant workspace. The operator can select dishes and sizes, record the tender, and open an 80 mm receipt from the saved order. Management can reconcile orders, payments and expenses and export business records for further review.
 
 ## Design and implementation
 
@@ -16,4 +16,4 @@ The local installation and Netlify have different storage and hardware boundarie
 
 The release suite combines unit checks with browser tests on disposable synthetic PostgreSQL data. The browser suite covers role login, menu category and expense creation, cash/card/QR checkout, concurrent duplicate submission, order history, receipt stability after a menu rename, exports, session deactivation and local backup. The release report records the results, the staging recovery rehearsal, and which operations still require separate acceptance. [Release verification](PORTFOLIO_RELEASE.md)
 
-This project demonstrates a complete order-to-receipt workflow and the release engineering needed to operate it on both a workstation and isolated cloud staging. Portfolio media uses synthetic records. No customer financial outcomes, production commissioning or hardware test results are claimed.
+This project demonstrates a complete order-to-receipt workflow and the release engineering needed to operate it on both a workstation and isolated cloud staging. Portfolio media uses synthetic records. The owner reports successful shop operation. No independently verified financial outcomes, physical hardware certification or formal commissioning sign-off are claimed.

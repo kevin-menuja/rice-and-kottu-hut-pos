@@ -1,6 +1,6 @@
 # Engineering documentation
 
-This directory contains the project specification, implementation notes, operating procedures and release evidence for Startek Restaurant POS. Documents in the engineering-history section describe earlier milestones and may not reflect the current code; the current README, architecture and release record take precedence.
+This directory contains the project specification, implementation notes, operating procedures and release evidence for Rice & Kottu Hut POS. Documents in the engineering-history section describe earlier milestones and may not reflect the current code; the current README, architecture and release record take precedence.
 
 ## Start here
 

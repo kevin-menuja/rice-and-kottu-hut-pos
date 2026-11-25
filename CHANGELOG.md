@@ -1,6 +1,6 @@
 # Changelog
 
-Meaningful changes to Startek Restaurant POS are documented here. Version 1.1.0 is the current released software baseline on `main`; the original v1.0.0 tag from July 2026 is retained. The Netlify public site remains an isolated synthetic-data environment; customer-site commissioning evidence is maintained separately.
+Meaningful changes to Rice & Kottu Hut POS (formerly Startek Restaurant POS) are documented here. Version 1.1.0 is the current released software baseline on `main`; the original v1.0.0 tag from July 2026 is retained. The Netlify public site remains an isolated synthetic-data environment; customer-site commissioning evidence is maintained separately.
 
 ## [1.1.0] — 2026-11-12
 

@@ -1,6 +1,6 @@
 # Project
 
-Startek Restaurant POS is the authenticated restaurant billing platform for Rice & Kottu Hut.
+Rice & Kottu Hut POS is the authenticated restaurant billing platform for Rice & Kottu Hut.
 
 ## Approved scope
 

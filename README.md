@@ -1,12 +1,12 @@
-# Startek Restaurant POS
+# Rice & Kottu Hut POS
 
-**Restaurant point-of-sale and back-office management, developed by Startek (PVT) LTD.**
+**A complete, independently developed restaurant POS and back-office system for my own shop, Rice & Kottu Hut, by Kevin Menuja.**
 
-A full-stack system built for a restaurant engagement, bringing order entry, recorded payments, menu administration, staff access, expenses, reporting and thermal receipts into one application. The codebase supports a local workstation deployment and a separately configured cloud evaluation environment.
+A full-stack system developed for the day-to-day operations of Rice & Kottu Hut, bringing order entry, recorded payments, menu administration, staff access, expenses, reporting and thermal receipts into one application. The codebase supports a local workstation deployment and a separately configured cloud evaluation environment.
 
 [View case study](docs/PORTFOLIO_CASE_STUDY.md) · [Browse demo media](docs/portfolio/README.md) · [Architecture](docs/ARCHITECTURE.md) · [Release evidence](docs/PORTFOLIO_RELEASE.md)
 
-> **Deployment status:** v1.1.0 software release on `main`. The [Netlify evaluation site](https://startek-restaurant-pos.netlify.app/login) uses synthetic data and requires authentication. This is not a claim of customer production cutover. No public administrator credentials are provided.
+> **Project status: Complete — v1.1.0 released software.** The agreed single-restaurant scope is implemented and the owner reports that the shop installation works. The application is production-oriented, with documented quality, security, backup and operating procedures. Independent live-installation acceptance (including physical printer and recovery verification) is separate from software completion. The [Netlify evaluation site](https://startek-restaurant-pos.netlify.app/login) uses isolated synthetic data and requires authentication; it is not the shop database. No public administrator credentials are provided.
 
 ## Product preview
 
@@ -72,8 +72,8 @@ See [Architecture and decisions](docs/ARCHITECTURE.md) for the trust boundaries,
 
 1. Clone the repository and install dependencies:
    ```bash
-   git clone https://github.com/Startek-pvt-ltd/startek-restaurant-pos.git
-   cd startek-restaurant-pos
+   git clone https://github.com/kevin-menuja/rice-and-kottu-hut-pos.git
+   cd rice-and-kottu-hut-pos
    npm ci
    ```
 2. Create a private local environment file from `.env.example`. Set a development `DATABASE_URL`, strong unique `AUTH_SECRET`, localhost `AUTH_URL` and `TRUSTED_ORIGIN`. Never use a customer database or production secret for development.
@@ -119,7 +119,7 @@ npx prisma migrate status
 
 The browser suite (`npm run test:e2e`) requires a **fresh isolated** PostgreSQL database named `startek_portfolio_<hex>`, synthetic seed credentials, a private backup directory and a local application server. It performs actual writes and must never target a customer database. See [Release verification](docs/PORTFOLIO_RELEASE.md) for the tested scenarios and recorded results.
 
-[GitHub Actions workflow](.github/workflows/ci.yml) defines quality, cloud-build and disposable-database browser checks. Its latest hosted execution is **blocked by a GitHub account billing restriction**; local verification does not count as a successful hosted CI run.
+[GitHub Actions workflow](.github/workflows/ci.yml) defines quality, cloud-build and disposable-database browser checks. The released application baseline at e5e8dc65 passed [hosted CI](https://github.com/kevin-menuja/rice-and-kottu-hut-pos/actions/runs/45502247679). Historical billing restrictions described in the release evidence are not the current CI status. The separate [production-readiness review (PR #7)](https://github.com/kevin-menuja/rice-and-kottu-hut-pos/pull/7) contains additional audited changes that are not part of the released baseline.
 
 A Netlify deployment must be built from a clean checkout with credentials supplied as platform environment variables. The cloud build rejects local dotenv files. **For manual deployments, publish `.netlify/static` with the adapter functions, never `.next` alone.** Use [the verified deployment procedure](docs/DEPLOYMENT.md) and run `node scripts/smoke-netlify.mjs https://startek-restaurant-pos.netlify.app` to check the live stylesheet, restaurant logo, database health, and route protection. Apply migrations deliberately and inspect generated functions before uploading.
 
@@ -137,4 +137,4 @@ Start with the [documentation index](docs/README.md). Key references include the
 
 ---
 
-Maintained by **Startek (PVT) LTD**. The repository documents a real software implementation and its demonstrated behavior; no claims are made about unverified customer outcomes or physical production acceptance.
+Developed by **Kevin Menuja** for Rice & Kottu Hut, with Startek attribution retained in historical engineering records. This repository documents the completed scoped software and its demonstrated behavior; it does not assert independent physical production certification.

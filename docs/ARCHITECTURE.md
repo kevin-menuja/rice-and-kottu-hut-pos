@@ -1,6 +1,6 @@
 # Architecture
 
-Startek Restaurant POS is a single Next.js application with a PostgreSQL datastore. It serves browser clients in two deployment environments: a local workstation configuration used for printer integration and an isolated cloud evaluation environment. Both environments share business logic but enforce different filesystem and hardware policies.
+Rice & Kottu Hut POS is a single Next.js application with a PostgreSQL datastore. It serves browser clients in two deployment environments: a local workstation configuration used for printer integration and an isolated cloud evaluation environment. Both environments share business logic but enforce different filesystem and hardware policies.
 
 ## Request and data flow
 
